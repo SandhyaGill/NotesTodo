@@ -1,0 +1,121 @@
+package com.sandhya.notestodo
+
+import android.app.Dialog
+import android.os.Bundle
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.sandhya.notestodo.adapter.AddListAdapter
+import com.sandhya.notestodo.databinding.FragmentAddUpdateBinding
+import com.sandhya.notestodo.modules.Todo
+
+// TODO: Rename parameter arguments, choose names that match
+// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+private const val ARG_PARAM1 = "param1"
+private const val ARG_PARAM2 = "param2"
+
+/**
+ * A simple [Fragment] subclass.
+ * Use the [AddUpdateFragment.newInstance] factory method to
+ * create an instance of this fragment.
+ */
+class AddUpdateFragment : Fragment() {
+    // TODO: Rename and change types of parameters
+    private var param1: String? = null
+    private var param2: String? = null
+    lateinit var binding: FragmentAddUpdateBinding
+    lateinit var adapter: AddListAdapter
+    var list = ArrayList<Todo>()
+    lateinit var todoDatabase: ToDoDatabase
+    var todoEntityList = arrayListOf<ToDoEntity>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            param1 = it.getString(ARG_PARAM1)
+            param2 = it.getString(ARG_PARAM2)
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        binding = FragmentAddUpdateBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        adapter = AddListAdapter(todoEntityList)
+//        binding.rvAddUpdateList.layoutManager = LinearLayoutManager(requireContext())
+//        binding.rvAddUpdateList.adapter = adapter
+
+        todoDatabase = ToDoDatabase.getDatabaseIntance(requireContext())
+        getDatabaseValue()
+        binding.btnAdd.setOnClickListener {
+            if (binding.etNotes.text.toString().trim().isNullOrEmpty()){
+                binding.etNotes.error = resources.getString(R.string.enter_notes)
+            }else if (binding.etTodoItem.text.toString().trim().isNullOrEmpty()){
+                binding.etTodoItem.error = resources.getString(R.string.enter_todo_item)
+            }else{
+                todoDatabase.todoDao().insertToDo(ToDoEntity(notes = binding.etNotes.text.toString() ,todoItem = binding.etTodoItem.text.toString()))
+                getDatabaseValue()
+                findNavController().navigate(R.id.notesFragment)
+            }
+        }
+
+//        binding.fabAddUpdate.setOnClickListener {
+//            var dialog = Dialog(requireContext())
+//            dialog.setContentView(R.layout.add_todo_item_dialog)
+//            var etTodoItem = dialog.findViewById<EditText>(R.id.etTodoItem)
+//            var etNotes = dialog.findViewById<EditText>(R.id.etNotes)
+//            var btnAdd = dialog.findViewById<Button>(R.id.btnAdd)
+//            if (etNotes.text.toString().trim().isNullOrEmpty()){
+//                etNotes.error = resources.getString(R.string.enter_notes)
+//            } else if (etTodoItem.text.toString().trim().isNullOrEmpty()){
+//                etTodoItem.error = resources.getString(R.string.enter_todo_item)
+//            }else{
+//                btnAdd.setOnClickListener {
+//
+//                }
+//            }
+//                dialog.window?.setLayout(
+//                    ViewGroup.LayoutParams.MATCH_PARENT,
+//                    ViewGroup.LayoutParams.WRAP_CONTENT
+//                )
+//            dialog.show()
+//        }
+    }
+    private fun getDatabaseValue() {
+        todoEntityList.clear()
+        todoEntityList.addAll(todoDatabase.todoDao().getTodoEntities())
+        adapter.notifyDataSetChanged()
+    }
+
+    companion object {
+        /**
+         * Use this factory method to create a new instance of
+         * this fragment using the provided parameters.
+         *
+         * @param param1 Parameter 1.
+         * @param param2 Parameter 2.
+         * @return A new instance of fragment AddUpdateFragment.
+         */
+        // TODO: Rename and change types and number of parameters
+        @JvmStatic
+        fun newInstance(param1: String, param2: String) =
+            AddUpdateFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_PARAM1, param1)
+                    putString(ARG_PARAM2, param2)
+                }
+            }
+    }
+}
