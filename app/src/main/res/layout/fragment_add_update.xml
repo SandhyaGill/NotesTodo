@@ -22,14 +22,28 @@
         android:id="@+id/etNotes"
         app:layout_constraintTop_toBottomOf="@id/tvAddList"/>
 
-    <EditText
+<!--    <EditText-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:hint="@string/enter_todo_item"-->
+<!--        android:layout_margin="@dimen/margin_10dp"-->
+<!--        android:id="@+id/etTodoItem"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/etNotes"/>-->
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnAddTodoItems"
+        app:layout_constraintTop_toBottomOf="@id/etNotes"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="@string/add_todo_item"/>
+
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/enter_todo_item"
-        android:layout_margin="@dimen/margin_10dp"
-        android:id="@+id/etTodoItem"
-        app:layout_constraintTop_toBottomOf="@id/etNotes"/>
-
+        android:id="@+id/rvTodoItems"
+        app:layout_constraintTop_toBottomOf="@id/btnAddTodoItems"
+        android:layout_margin="@dimen/margin_10dp"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -37,7 +51,7 @@
         android:text="@string/add"
         android:layout_gravity="center"
         android:layout_margin="@dimen/margin_10dp"
-        app:layout_constraintTop_toBottomOf="@id/etTodoItem"
+        app:layout_constraintTop_toBottomOf="@id/rvTodoItems"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 

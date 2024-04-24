@@ -5,11 +5,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sandhya.notestodo.adapter.NotesListAdapter
 import com.sandhya.notestodo.databinding.FragmentNotesBinding
-import com.sandhya.notestodo.modules.Notes
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -21,15 +24,16 @@ private const val ARG_PARAM2 = "param2"
  * Use the [NotesFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class NotesFragment : Fragment() {
+class NotesFragment : Fragment(), OnItemClickInterface {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
     lateinit var binding: FragmentNotesBinding
     lateinit var adapter : NotesListAdapter
-    var list = ArrayList<Notes>()
+//    var list = ArrayList<Notes>()
     lateinit var todoDatabase: ToDoDatabase
-    var todoEntityList = arrayListOf<ToDoEntity>()
+    var todoEntityList = arrayListOf<NotesEntity>()
+    lateinit var notesViewModel: NotesViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,19 +54,22 @@ class NotesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = NotesListAdapter(todoEntityList)
+        notesViewModel = ViewModelProvider(this)[NotesViewModel::class.java]
+        adapter = NotesListAdapter(todoEntityList,this)
         binding.rvNotesList.layoutManager = LinearLayoutManager(requireContext())
         binding.rvNotesList.adapter = adapter
-        todoDatabase = ToDoDatabase.getDatabaseIntance(requireContext())
-        getDatabaseValue()
         binding.fabNotes.setOnClickListener {
             findNavController().navigate(R.id.addUpdateFragment)
+        }
+
+        notesViewModel.notesEntity.observe(this){
+            todoEntityList.clear()
+            todoEntityList.addAll(it as ArrayList<NotesEntity>)
         }
     }
 
     private fun getDatabaseValue() {
         todoEntityList.clear()
-        todoEntityList.addAll(todoDatabase.todoDao().getTodoEntities())
         adapter.notifyDataSetChanged()
     }
 
@@ -84,5 +91,21 @@ class NotesFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    override fun edit(notes: NotesEntity) {
+
+    }
+
+    override fun delete(notes: NotesEntity) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(resources.getString(R.string.delete_message))
+            .setPositiveButton("yes") { _, _ ->
+                Toast.makeText(requireContext(), resources.getString(R.string.removed), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("No") { _, _ ->
+                Toast.makeText(requireContext(), "Can't remove ", Toast.LENGTH_SHORT).show()
+            }
+            .show()
     }
 }

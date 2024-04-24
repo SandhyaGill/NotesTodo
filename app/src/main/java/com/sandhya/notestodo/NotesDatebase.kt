@@ -6,10 +6,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 
-@Database(entities =  [ToDoEntity::class], version=1)
+@Database(entities =  [NotesEntity::class, TodoEntity::class], version=1)
 abstract class ToDoDatabase : RoomDatabase() {
 
-    abstract fun todoDao() : ToDoDao
+    abstract fun todoDao() : NotesDao
 
     companion object{
         var toDoDatabase : ToDoDatabase? = null
@@ -20,7 +20,6 @@ abstract class ToDoDatabase : RoomDatabase() {
                 toDoDatabase = Room.databaseBuilder(context,
                     ToDoDatabase::class.java,
                     context.resources.getString(R.string.app_name))
-                    .allowMainThreadQueries()
                     .build()
             }
             return toDoDatabase!!

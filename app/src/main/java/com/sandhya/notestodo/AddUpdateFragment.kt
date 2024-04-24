@@ -8,11 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sandhya.notestodo.adapter.AddListAdapter
 import com.sandhya.notestodo.databinding.FragmentAddUpdateBinding
-import com.sandhya.notestodo.modules.Todo
+import com.sandhya.notestodo.modules.TodoItem
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -29,13 +30,15 @@ class AddUpdateFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
     lateinit var binding: FragmentAddUpdateBinding
-    lateinit var adapter: AddListAdapter
-    var list = ArrayList<Todo>()
     lateinit var todoDatabase: ToDoDatabase
-    var todoEntityList = arrayListOf<ToDoEntity>()
+    lateinit var adapter: AddListAdapter
+    var list = ArrayList<TodoItem>()
+    var todoEntityList = arrayListOf<NotesEntity>()
+    lateinit var notesViewModel: NotesViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        notesViewModel = ViewModelProvider(this)[NotesViewModel::class.java]
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
@@ -53,52 +56,42 @@ class AddUpdateFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = AddListAdapter(todoEntityList)
-//        binding.rvAddUpdateList.layoutManager = LinearLayoutManager(requireContext())
-//        binding.rvAddUpdateList.adapter = adapter
+        adapter = AddListAdapter(list)
+        binding.rvTodoItems.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvTodoItems.adapter = adapter
 
         todoDatabase = ToDoDatabase.getDatabaseIntance(requireContext())
-        getDatabaseValue()
+        binding.btnAddTodoItems.setOnClickListener {
+            var dialog = Dialog(requireContext())
+            dialog.setContentView(R.layout.todo_item_dialog)
+            var etTodoItem = dialog.findViewById<EditText>(R.id.etTodoItem)
+            var btnAddTodoItem = dialog.findViewById<Button>(R.id.btnAddTodoItem)
+            btnAddTodoItem.setOnClickListener {
+                if (etTodoItem.text.toString().isNullOrEmpty()){
+                    etTodoItem.error = resources.getString(R.string.enter_todo_item)
+                }else{
+                    var todoItem = etTodoItem.text.toString()
+                    list.add(TodoItem(todoItem = todoItem))
+                    adapter.notifyDataSetChanged()
+                    dialog.dismiss()
+                }
+            }
+            dialog.window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            dialog.show()
+        }
         binding.btnAdd.setOnClickListener {
             if (binding.etNotes.text.toString().trim().isNullOrEmpty()){
                 binding.etNotes.error = resources.getString(R.string.enter_notes)
-            }else if (binding.etTodoItem.text.toString().trim().isNullOrEmpty()){
-                binding.etTodoItem.error = resources.getString(R.string.enter_todo_item)
             }else{
-                todoDatabase.todoDao().insertToDo(ToDoEntity(notes = binding.etNotes.text.toString() ,todoItem = binding.etTodoItem.text.toString()))
-                getDatabaseValue()
-                findNavController().navigate(R.id.notesFragment)
+                var etNotes = binding.etNotes.text.toString()
+                notesViewModel.insertNotes(NotesEntity(notes = etNotes))
+                findNavController().popBackStack()
             }
         }
-
-//        binding.fabAddUpdate.setOnClickListener {
-//            var dialog = Dialog(requireContext())
-//            dialog.setContentView(R.layout.add_todo_item_dialog)
-//            var etTodoItem = dialog.findViewById<EditText>(R.id.etTodoItem)
-//            var etNotes = dialog.findViewById<EditText>(R.id.etNotes)
-//            var btnAdd = dialog.findViewById<Button>(R.id.btnAdd)
-//            if (etNotes.text.toString().trim().isNullOrEmpty()){
-//                etNotes.error = resources.getString(R.string.enter_notes)
-//            } else if (etTodoItem.text.toString().trim().isNullOrEmpty()){
-//                etTodoItem.error = resources.getString(R.string.enter_todo_item)
-//            }else{
-//                btnAdd.setOnClickListener {
-//
-//                }
-//            }
-//                dialog.window?.setLayout(
-//                    ViewGroup.LayoutParams.MATCH_PARENT,
-//                    ViewGroup.LayoutParams.WRAP_CONTENT
-//                )
-//            dialog.show()
-//        }
     }
-    private fun getDatabaseValue() {
-        todoEntityList.clear()
-        todoEntityList.addAll(todoDatabase.todoDao().getTodoEntities())
-        adapter.notifyDataSetChanged()
-    }
-
     companion object {
         /**
          * Use this factory method to create a new instance of
